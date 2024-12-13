@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+    environment:
+      GOMODCACHE: ${SERVICE_GOMODCACHE_PATH_DOCKER}
+      GOCACHE: ${SERVICE_GOCACHE_PATH_DOCKER}
+    volumes:
+      - "${SERVICE_VOLUME_PATH}:${SERVICE_VOLUME_PATH_DOCKER}"
+    ports:
+      - "${SERVICE_PORT}:${SERVICE_PORT_DOCKER}"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}
+    volumes:
+      - "${MYSQL_VOLUME_PATH}:${MYSQL_VOLUME_PATH_DOCKER}"
+    ports:
+      - "${MYSQL_PORT}:${MYSQL_PORT_DOCKER}"
