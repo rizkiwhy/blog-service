@@ -2,9 +2,9 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"os"
 
+	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -20,7 +20,7 @@ func MySQLConnection() (db *gorm.DB, err error) {
 
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	if err != nil {
-		log.Fatal("Failed to connect to database. \n", err)
+		log.Error().Err(err).Msg("[database][MySQLConnection] Failed to connect to MySQL")
 		return nil, err
 	}
 

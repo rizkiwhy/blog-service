@@ -10,4 +10,5 @@ import (
 func SetupUserRoutes(r *gin.Engine, service pkgUser.Service) {
 	userHandler := handler.NewUserHandler(service)
 	r.POST("/register", userHandler.Register)
+	r.POST("/login", userHandler.Login)
 }
