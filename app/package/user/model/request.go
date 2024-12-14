@@ -1,8 +1,17 @@
 package model
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	UserDomain          = "user"
+	PrefixKeyJWTPayload = "%s-jit:%s"
 )
 
 type RegisterRequest struct {
@@ -14,7 +23,7 @@ type RegisterRequest struct {
 func (r *RegisterRequest) HashPassword() (err error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(r.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Error().Err(err).Msg("[HashPassword] Failed to hash password")
+		log.Error().Err(err).Msg("[UserRequest][HashPassword] Failed to hash password")
 		return
 	}
 
@@ -29,4 +38,32 @@ func (r *RegisterRequest) ToUser() User {
 		Email:        r.Email,
 		PasswordHash: r.Password,
 	}
+}
+
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type SetJWTPayloadRequest struct {
+	UserID int64
+	Email  string
+	JIT    uuid.UUID
+	Exp    time.Duration
+	Key    string
+	Value  ValueJWTPayload
+}
+
+func (request *SetJWTPayloadRequest) KeyJWTPayload() {
+	request.Key = fmt.Sprintf(PrefixKeyJWTPayload, UserDomain, request.JIT.String())
+}
+
+type ValueJWTPayload struct {
+	UserID int64  `json:"user_id"`
+	Email  string `json:"email"`
+}
+
+func (request *SetJWTPayloadRequest) ValueJWTPayload() {
+	request.Value.Email = request.Email
+	request.Value.UserID = request.UserID
 }
