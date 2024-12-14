@@ -3,6 +3,11 @@ package main
 import (
 	"net/http"
 	"rizkiwhy-blog-service/api/router"
+	"rizkiwhy-blog-service/util/database"
+	"rizkiwhy-blog-service/util/logger"
+
+	pkgUser "rizkiwhy-blog-service/package/user"
+	mUser "rizkiwhy-blog-service/package/user/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,12 +15,23 @@ import (
 func main() {
 	g := gin.Default()
 
-	router.SetupRoutes(g)
+	logger.InitLogger()
 
-	s := &http.Server{
+	router.SetupPingRoutes(g)
+	db, err := database.MySQLConnection()
+	if err != nil {
+		panic(err)
+	}
+	db.AutoMigrate(&mUser.User{})
+
+	userRepository := pkgUser.NewRepository(db)
+	userService := pkgUser.NewService(userRepository)
+	router.SetupUserRoutes(g, userService)
+
+	server := &http.Server{
 		Addr:    ":8080",
 		Handler: g,
 	}
 
-	s.ListenAndServe()
+	server.ListenAndServe()
 }

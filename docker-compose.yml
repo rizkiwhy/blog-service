@@ -2,15 +2,25 @@ services:
   app:
     build:
       context: .
+      dockerfile: Dockerfile
     environment:
       GOMODCACHE: ${SERVICE_GOMODCACHE_PATH_DOCKER}
       GOCACHE: ${SERVICE_GOCACHE_PATH_DOCKER}
+      MYSQL_HOST: ${MYSQL_HOST_DOCKER}
+      MYSQL_PORT: ${MYSQL_PORT_DOCKER}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE_NAME: ${MYSQL_DATABASE_NAME}
+    env_file:
+      - .env
     volumes:
       - "${SERVICE_VOLUME_PATH}:${SERVICE_VOLUME_PATH_DOCKER}"
     ports:
       - "${SERVICE_PORT}:${SERVICE_PORT_DOCKER}"
     depends_on:
       - db
+    networks:
+      - mynetwork
 
   db:
     image: mysql:8.0
@@ -21,3 +31,8 @@ services:
       - "${MYSQL_VOLUME_PATH}:${MYSQL_VOLUME_PATH_DOCKER}"
     ports:
       - "${MYSQL_PORT}:${MYSQL_PORT_DOCKER}"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
