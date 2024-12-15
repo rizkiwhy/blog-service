@@ -9,7 +9,7 @@ const (
 	ErrUserCreation         = "failed to create user"
 	ErrInvalidRequest       = "invalid request"
 	ErrUnauthorizedAccess   = "unauthorized access"
-	ErrNotFound             = "not found"
+	ErrNotFound             = "record not found"
 	ErrInternalError        = "internal server error"
 	ErrInvalidEmailPassword = "invalid email or password"
 	ErrMissingFields        = "missing required fields"

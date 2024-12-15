@@ -1,6 +1,7 @@
 package post
 
 import (
+	"errors"
 	"rizkiwhy-blog-service/package/post/model"
 
 	"github.com/rs/zerolog/log"
@@ -15,12 +16,34 @@ type Service interface {
 	GetByID(request int64) (response model.PostResponse, err error)
 	SearchByFilter(request model.Filter) (response []model.PostResponse, err error)
 	Update(request model.UpdateRequest) (response model.PostResponse, err error)
+	Delete(request model.DeleteRequest) (err error)
 }
 
 func NewService(repository Repository) Service {
 	return &ServiceImpl{
 		Repository: repository,
 	}
+}
+
+func (s *ServiceImpl) Delete(request model.DeleteRequest) (err error) {
+	post, err := s.Repository.GetByID(request.ID, true)
+	if err != nil {
+		log.Error().Err(err).Int64("id", request.ID).Msg("[PostService][Delete] Failed to get post by id")
+		return
+	}
+
+	if !post.ValidateAuthor(request.AuthorID) {
+		err = errors.New(model.ErrUnauthorizedAccess)
+		log.Error().Int64("author_id", request.AuthorID).Int64("post_author_id", post.AuthorID).Msg("[PostService][Delete] Unauthorized")
+		return
+	}
+
+	err = s.Repository.Delete(request.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("id", request.ID).Msg("[PostService][Delete] Failed to delete post")
+	}
+
+	return
 }
 
 func (s *ServiceImpl) Update(request model.UpdateRequest) (response model.PostResponse, err error) {

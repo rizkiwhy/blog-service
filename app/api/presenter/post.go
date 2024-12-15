@@ -1,6 +1,9 @@
 package presenter
 
-import "net/http"
+import (
+	"net/http"
+	"rizkiwhy-blog-service/package/post/model"
+)
 
 const (
 	CreatePostSuccessMessage        = "Post created successfully"
@@ -10,9 +13,11 @@ const (
 	GetPostSuccessMessage           = "Post retrieved successfully"
 	GetPostFailureMessage           = "Failed to retrieve post"
 	UpdatePostUnauthorizedMessage   = "Unauthorized to update post request"
+	UpdatePostNotFoundMessage       = "Post not found"
 	UpdatePostFailureMessage        = "Failed to update post request error"
 	UpdatePostSuccessMessage        = "Post updated successfully"
-	UpdatePostNotFoundMessage       = "record not found"
+	DeletePostFailureMessage        = "Failed to delete post"
+	DeletePostSuccessMessage        = "Post deleted successfully"
 )
 
 var CreatePostStatusCodeMap = map[string]int{
@@ -28,4 +33,8 @@ var UpdatePostStatusCodeMap = map[string]int{
 	UpdatePostFailureMessage:      http.StatusInternalServerError,
 	UpdatePostNotFoundMessage:     http.StatusNotFound,
 	UpdatePostUnauthorizedMessage: http.StatusUnauthorized,
+}
+
+var DeletePostStatusCodeMap = map[string]int{
+	model.ErrNotFound: http.StatusNotFound,
 }

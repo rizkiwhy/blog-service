@@ -14,10 +14,21 @@ type Repository interface {
 	GetByID(id int64, preloadAuthor bool) (*model.Post, error)
 	SearchByFilter(filter database.MySQLFilter) (posts []model.Post, err error)
 	Update(post model.Post) (*model.Post, error)
+	Delete(id int64) (err error)
 }
 
 type RepositoryImpl struct {
 	DB *gorm.DB
+}
+
+func (r *RepositoryImpl) Delete(id int64) (err error) {
+	result := r.DB.Delete(&model.Post{ID: id})
+	if result.Error != nil {
+		log.Error().Err(result.Error).Int64("id", id).Msg("[PostRepository][Delete] Failed to delete post")
+		return result.Error
+	}
+
+	return nil
 }
 
 func NewRepository(db *gorm.DB) Repository {

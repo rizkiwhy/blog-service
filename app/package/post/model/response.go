@@ -5,6 +5,7 @@ import "time"
 const (
 	ErrUnauthorizedAccess = "unauthorized access"
 	ErrInvalidRequest     = "invalid request"
+	ErrNotFound           = "record not found"
 )
 
 type PostResponse struct {
