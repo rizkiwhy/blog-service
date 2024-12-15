@@ -58,3 +58,19 @@ func (h *PostHandler) GetByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.GetPostSuccessMessage, response))
 }
+
+func (h *PostHandler) Search(c *gin.Context) {
+	var request model.Filter
+	request.SetSearch(c.Query("search"))
+	request.SetPagination(convert.StringToInt64(c.DefaultQuery("page", "1")), convert.StringToInt64(c.DefaultQuery("limit", "10")))
+	request.SetSortAndOrder(c.DefaultQuery("sort", "created_at"), c.DefaultQuery("order", "desc"))
+
+	response, err := h.Service.SearchByFilter(request)
+	if err != nil {
+		log.Error().Err(err).Msg("[PostHandler][GetAll] Failed to get all post")
+		presenter.HandleError(c, err, presenter.GetPostStatusCodeMap, presenter.GetPostFailureMessage)
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.GetPostSuccessMessage, response))
+}

@@ -13,6 +13,7 @@ type ServiceImpl struct {
 type Service interface {
 	Create(request model.CreateRequest) (response model.PostResponse, err error)
 	GetByID(request int64) (response model.PostResponse, err error)
+	SearchByFilter(request model.Filter) (response []model.PostResponse, err error)
 }
 
 func NewService(repository Repository) Service {
@@ -33,11 +34,27 @@ func (s *ServiceImpl) Create(request model.CreateRequest) (response model.PostRe
 }
 
 func (s *ServiceImpl) GetByID(request int64) (response model.PostResponse, err error) {
-	post, err := s.Repository.GetByID(request)
+	post, err := s.Repository.GetByID(request, true)
 	if err != nil {
 		log.Error().Err(err).Int64("id", request).Msg("[PostService][GetByID] Failed to get post by id")
 		return
 	}
 
 	return post.ToPostResponse(), nil
+}
+
+func (s *ServiceImpl) SearchByFilter(request model.Filter) (response []model.PostResponse, err error) {
+	filter := request.ToMySQLFilter()
+	filter.Preload = append(filter.Preload, "Author")
+	posts, err := s.Repository.SearchByFilter(filter)
+	if err != nil {
+		log.Error().Err(err).Interface("filter", filter).Msg("[PostService][SearchByFilter] Failed to get post by filter")
+		return
+	}
+
+	for _, post := range posts {
+		response = append(response, post.ToPostResponse())
+	}
+
+	return
 }
