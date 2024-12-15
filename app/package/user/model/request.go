@@ -65,15 +65,17 @@ type ValueJWTPayload struct {
 	Email  string `json:"email"`
 }
 
-func (request *ValueJWTPayload) ValidateTokenClaims(claims jwt.MapClaims) error {
+func (request *ValueJWTPayload) ValidateTokenClaims(claims jwt.MapClaims) (err error) {
 	if id, ok := claims["sub"]; !ok || id != request.UserID {
-		err := errors.New(ErrInvalidToken)
+		err = errors.New(ErrInvalidToken)
 		log.Error().Err(err).Msg("[ValueJWTPayload][ValidateTokenClaims] Invalid token claims")
+		return
 	}
 
 	if email, ok := claims["email"]; !ok || email != request.Email {
-		err := errors.New(ErrInvalidToken)
+		err = errors.New(ErrInvalidToken)
 		log.Error().Err(err).Msg("[ValueJWTPayload][ValidateTokenClaims] Invalid token claims")
+		return
 	}
 
 	return nil
