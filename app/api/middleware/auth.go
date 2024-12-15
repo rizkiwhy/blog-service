@@ -61,7 +61,7 @@ func (m *AuthMiddleware) AuthJWT() gin.HandlerFunc {
 		}
 
 		if err := payload.ValidateTokenClaims(claims); err != nil {
-			log.Error().Err(err).Msg("[AuthMiddleware][AuthJWT] Invalid token claims")
+			log.Error().Err(err).Msg("[AuthMiddleware][AuthJWT] Invalid token claims compare with payload")
 			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenClaimsMessage)
 			return
 		}
@@ -73,8 +73,8 @@ func (m *AuthMiddleware) AuthJWT() gin.HandlerFunc {
 			return
 		}
 
-		if user.ValidateTokenClaimsSub(payload.UserID, claims["sub"].(int64)) {
-			log.Error().Msg("[AuthMiddleware][AuthJWT] Invalid token claims")
+		if !user.ValidateTokenClaimsSub(payload.UserID, claims["sub"].(float64)) {
+			log.Error().Msg("[AuthMiddleware][AuthJWT] Invalid token claims compoare with user")
 			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenClaimsMessage)
 			return
 		}

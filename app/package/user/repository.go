@@ -35,8 +35,7 @@ func (r *RepositoryImpl) countByFilter(filter database.MySQLFilter) (res int64, 
 }
 
 func (r *RepositoryImpl) getByFilter(filter database.MySQLFilter) (user *model.User, err error) {
-	db := database.BuildMySQLFilter(r.DB, filter)
-	err = db.First(&user).Error
+	err = database.BuildMySQLFilter(r.DB, filter).First(&user).Error
 	if err != nil {
 		log.Error().Err(err).Interface("filter", filter).Msg("[UserRepository][getByFilter] Failed to get user by filter")
 	}
