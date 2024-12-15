@@ -6,6 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type DeleteRequest struct {
+	ID       int64
+	AuthorID int64
+}
+
 type UpdateRequest struct {
 	ID       int64
 	Title    string `json:"title"`

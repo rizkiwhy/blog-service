@@ -18,6 +18,10 @@ type Post struct {
 	UpdatedAt *time.Time  `gorm:"autoUpdateTime"`
 }
 
+func (p *Post) ValidateAuthor(userID int64) bool {
+	return p.Author.ID == userID
+}
+
 func (p *Post) UpdateRequest(request UpdateRequest) (err error) {
 	if request.AuthorID != p.AuthorID {
 		err = errors.New(ErrUnauthorizedAccess)

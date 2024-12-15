@@ -25,7 +25,7 @@ func (h *PostHandler) Create(c *gin.Context) {
 	var request model.CreateRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		log.Error().Err(err).Msg("[PostHandler][Create] Failed to bind json")
-		c.JSON(http.StatusBadRequest, presenter.FailureResponse(presenter.CreatePostFailureMessage, err.Error()))
+		c.JSON(http.StatusBadRequest, presenter.FailureResponse(presenter.CreatePostInvalidRequestMessage, err.Error()))
 		return
 	}
 
@@ -100,4 +100,24 @@ func (h *PostHandler) Search(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.GetPostSuccessMessage, response))
+}
+
+func (h *PostHandler) Delete(c *gin.Context) {
+	var request model.DeleteRequest
+	request.ID = convert.StringToInt64(c.Param("id"))
+	value, exists := c.Get("user_id")
+	if !exists || value.(int64) == 0 {
+		log.Error().Msg("[PostHandler][Update] Failed to get user id")
+		c.JSON(http.StatusBadRequest, presenter.FailureResponse(presenter.UpdatePostFailureMessage, model.ErrUnauthorizedAccess))
+		return
+	}
+	request.AuthorID = value.(int64)
+	err := h.Service.Delete(request)
+	if err != nil {
+		log.Error().Err(err).Msg("[PostHandler][Delete] Failed to delete post")
+		presenter.HandleError(c, err, presenter.DeletePostStatusCodeMap, presenter.DeletePostFailureMessage)
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.DeletePostSuccessMessage, nil))
 }
