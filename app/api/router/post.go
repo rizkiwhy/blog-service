@@ -11,6 +11,10 @@ import (
 func SetupPostRoutes(r *gin.Engine, authMiddleware *middleware.AuthMiddleware, service pkgPost.Service) {
 	postHandler := handler.NewPostHandler(service)
 	r.Use(authMiddleware.AuthJWT())
-	r.POST("/post", postHandler.Create)
-	r.GET("/post/:id", postHandler.GetByID)
+	postsRouter := r.Group("/posts")
+	{
+		postsRouter.GET("/", postHandler.Search)
+		postsRouter.GET("/:id", postHandler.GetByID)
+		postsRouter.POST("/", postHandler.Create)
+	}
 }
