@@ -12,8 +12,6 @@ type ServiceImpl struct {
 
 type Service interface {
 	Create(request model.CreateRequest) (response model.PostResponse, err error)
-	// Register(request model.RegisterRequest) (response model.RegisterResponse, err error)
-	// Login(request model.LoginRequest) (response model.LoginResponse, err error)
 }
 
 func NewService(repository Repository) Service {
