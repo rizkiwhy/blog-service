@@ -14,12 +14,35 @@ type Service interface {
 	Create(request model.CreateRequest) (response model.PostResponse, err error)
 	GetByID(request int64) (response model.PostResponse, err error)
 	SearchByFilter(request model.Filter) (response []model.PostResponse, err error)
+	Update(request model.UpdateRequest) (response model.PostResponse, err error)
 }
 
 func NewService(repository Repository) Service {
 	return &ServiceImpl{
 		Repository: repository,
 	}
+}
+
+func (s *ServiceImpl) Update(request model.UpdateRequest) (response model.PostResponse, err error) {
+	post, err := s.Repository.GetByID(request.ID, false)
+	if err != nil {
+		log.Error().Err(err).Int64("id", request.ID).Msg("[PostService][Update] Failed to get post by id")
+		return
+	}
+
+	err = post.UpdateRequest(request)
+	if err != nil {
+		log.Error().Err(err).Interface("post", post).Msg("[PostService][Update] Failed to update request")
+		return
+	}
+
+	result, err := s.Repository.Update(*post)
+	if err != nil {
+		log.Error().Err(err).Interface("post", post).Msg("[PostService][Update] Failed to update post")
+		return
+	}
+
+	return result.ToPostResponse(), nil
 }
 
 func (s *ServiceImpl) Create(request model.CreateRequest) (response model.PostResponse, err error) {

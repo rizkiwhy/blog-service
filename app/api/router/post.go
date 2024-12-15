@@ -15,6 +15,7 @@ func SetupPostRoutes(r *gin.Engine, authMiddleware *middleware.AuthMiddleware, s
 	{
 		postsRouter.GET("/", postHandler.Search)
 		postsRouter.GET("/:id", postHandler.GetByID)
+		postsRouter.PUT("/:id", postHandler.Update)
 		postsRouter.POST("/", postHandler.Create)
 	}
 }
