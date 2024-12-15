@@ -5,6 +5,7 @@ import (
 	"rizkiwhy-blog-service/api/presenter"
 	pkgPost "rizkiwhy-blog-service/package/post"
 	"rizkiwhy-blog-service/package/post/model"
+	"rizkiwhy-blog-service/util/convert"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -44,4 +45,16 @@ func (h *PostHandler) Create(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, presenter.SuccessResponse(presenter.CreatePostSuccessMessage, response))
+}
+
+func (h *PostHandler) GetByID(c *gin.Context) {
+	postID := convert.StringToInt64(c.Param("id"))
+	response, err := h.Service.GetByID(postID)
+	if err != nil {
+		log.Error().Err(err).Msg("[PostHandler][Get] Failed to get post")
+		presenter.HandleError(c, err, presenter.GetPostStatusCodeMap, presenter.GetPostFailureMessage)
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.GetPostSuccessMessage, response))
 }

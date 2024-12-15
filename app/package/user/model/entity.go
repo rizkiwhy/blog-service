@@ -21,8 +21,8 @@ type User struct {
 	UpdatedAt    *time.Time `gorm:"autoUpdateTime"`
 }
 
-func (u *User) ValidateTokenClaimsSub(sub int64, userID int64) bool {
-	return u.ID == sub && u.ID == userID
+func (u *User) ValidateTokenClaimsSub(sub int64, userID float64) bool {
+	return u.ID == sub && u.ID == int64(userID)
 }
 
 func (u *User) ToRegisterResponse() RegisterResponse {

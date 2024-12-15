@@ -22,5 +22,6 @@ func (p *Post) ToPostResponse() PostResponse {
 		Content:   p.Content,
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
+		Author:    &Author{ID: p.Author.ID, Name: p.Author.Name},
 	}
 }
