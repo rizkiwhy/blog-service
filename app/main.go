@@ -40,7 +40,7 @@ func main() {
 	userService := pkgUser.NewService(userRepository, userCacheRepository)
 	router.SetupUserRoutes(g, userService)
 
-	authMiddleware := middleware.NewAuthMiddleware(userService, userCacheRepository)
+	authMiddleware := middleware.NewAuthMiddleware(userRepository, userCacheRepository)
 
 	postRepository := pkgPost.NewRepository(db)
 	postService := pkgPost.NewService(postRepository)
