@@ -21,6 +21,10 @@ type RepositoryImpl struct {
 	DB *gorm.DB
 }
 
+func NewRepository(db *gorm.DB) Repository {
+	return &RepositoryImpl{DB: db}
+}
+
 func (r *RepositoryImpl) Delete(id int64) (err error) {
 	result := r.DB.Delete(&model.Post{ID: id})
 	if result.Error != nil {
@@ -29,10 +33,6 @@ func (r *RepositoryImpl) Delete(id int64) (err error) {
 	}
 
 	return nil
-}
-
-func NewRepository(db *gorm.DB) Repository {
-	return &RepositoryImpl{DB: db}
 }
 
 func (r *RepositoryImpl) Update(post model.Post) (*model.Post, error) {

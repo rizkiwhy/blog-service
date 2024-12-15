@@ -1,9 +1,8 @@
 package model
 
 import (
-	"time"
-
 	mUser "rizkiwhy-blog-service/package/user/model"
+	"time"
 )
 
 const (
@@ -12,11 +11,11 @@ const (
 	ErrNotFound           = "record not found"
 )
 
-type PostResponse struct {
+type CommentResponse struct {
 	ID        int64         `json:"id"`
-	Title     string        `json:"title"`
-	Content   string        `json:"content"`
+	PostID    int64         `json:"post_id"`
 	Author    *mUser.Author `json:"author,omitempty"`
+	Content   string        `json:"content"`
 	CreatedAt time.Time     `json:"created_at"`
 	UpdatedAt *time.Time    `json:"updated_at"`
 }

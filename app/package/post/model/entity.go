@@ -54,7 +54,7 @@ func (p *Post) ToPostResponse() (res PostResponse) {
 	}
 
 	if p.Author != nil {
-		res.Author = &Author{
+		res.Author = &mUser.Author{
 			ID:   p.Author.ID,
 			Name: p.Author.Name,
 		}
