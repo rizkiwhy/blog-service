@@ -32,11 +32,11 @@ func (h *UserHandler) Register(c *gin.Context) {
 	response, err := h.Service.Register(request)
 	if err != nil {
 		log.Error().Err(err).Msg("[UserHandler][Register] Failed to register user")
-		c.JSON(presenter.RegisterStatusCodeMap[err.Error()], presenter.FailureResponse(presenter.RegisterFailureMessage, err.Error()))
+		presenter.HandleError(c, err, presenter.RegisterStatusCodeMap, presenter.RegisterFailureMessage)
 		return
 	}
 
-	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.RegisterSuccessMessage, response))
+	c.JSON(http.StatusCreated, presenter.SuccessResponse(presenter.RegisterSuccessMessage, response))
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
@@ -51,7 +51,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	response, err := h.Service.Login(request)
 	if err != nil {
 		log.Error().Err(err).Msg("[UserHandler][Login] Failed to login user")
-		c.JSON(presenter.LoginStatusCodeMap[err.Error()], presenter.FailureResponse(presenter.LoginFailureMessage, err.Error()))
+		presenter.HandleError(c, err, presenter.LoginStatusCodeMap, presenter.LoginFailureMessage)
 		return
 	}
 
