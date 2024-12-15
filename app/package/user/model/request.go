@@ -1,9 +1,11 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
@@ -63,7 +65,30 @@ type ValueJWTPayload struct {
 	Email  string `json:"email"`
 }
 
+func (request *ValueJWTPayload) ValidateTokenClaims(claims jwt.MapClaims) error {
+	if id, ok := claims["sub"]; !ok || id != request.UserID {
+		err := errors.New(ErrInvalidToken)
+		log.Error().Err(err).Msg("[ValueJWTPayload][ValidateTokenClaims] Invalid token claims")
+	}
+
+	if email, ok := claims["email"]; !ok || email != request.Email {
+		err := errors.New(ErrInvalidToken)
+		log.Error().Err(err).Msg("[ValueJWTPayload][ValidateTokenClaims] Invalid token claims")
+	}
+
+	return nil
+}
+
 func (request *SetJWTPayloadRequest) ValueJWTPayload() {
 	request.Value.Email = request.Email
 	request.Value.UserID = request.UserID
+}
+
+type GetJWTPayloadRequest struct {
+	JIT uuid.UUID
+	Key string
+}
+
+func (request *GetJWTPayloadRequest) KeyJWTPayload() {
+	request.Key = fmt.Sprintf(PrefixKeyJWTPayload, UserDomain, request.JIT.String())
 }

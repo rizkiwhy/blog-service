@@ -59,6 +59,7 @@ func (r *RepositoryImpl) Create(user model.User) (*model.User, error) {
 	result := r.DB.Create(&user)
 	if result.Error != nil {
 		log.Error().Err(result.Error).Interface("user", user).Msg("[UserRepository][Create] Failed to create user")
+		return nil, result.Error
 	}
 
 	return &user, nil

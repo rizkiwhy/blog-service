@@ -17,6 +17,7 @@ const (
 	ErrPasswordLength       = "password must be at least 8 characters long"
 	ErrPasswordComplexity   = "password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
 	ErrTokenGeneration      = "failed to generate token"
+	ErrInvalidToken         = "invalid token"
 )
 
 type RegisterResponse struct {

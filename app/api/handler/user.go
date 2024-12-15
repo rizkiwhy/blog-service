@@ -36,7 +36,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.RegisterSuccessMessage, response))
+	c.JSON(http.StatusCreated, presenter.SuccessResponse(presenter.RegisterSuccessMessage, response))
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
