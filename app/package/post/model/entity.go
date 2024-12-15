@@ -13,7 +13,6 @@ type Post struct {
 	Author    *mUser.User `gorm:"foreignKey:AuthorID"`
 	CreatedAt time.Time   `gorm:"autoCreateTime;not null"`
 	UpdatedAt *time.Time  `gorm:"autoUpdateTime"`
-	DeletedAt *time.Time  `gorm:"autoDeleteTime"`
 }
 
 func (p *Post) ToPostResponse() (res PostResponse) {
@@ -24,6 +23,7 @@ func (p *Post) ToPostResponse() (res PostResponse) {
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
 	}
+
 	if p.Author != nil {
 		res.Author = &Author{
 			ID:   p.Author.ID,
