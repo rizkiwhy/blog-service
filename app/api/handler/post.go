@@ -47,6 +47,33 @@ func (h *PostHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, presenter.SuccessResponse(presenter.CreatePostSuccessMessage, response))
 }
 
+func (h *PostHandler) Update(c *gin.Context) {
+	var request model.UpdateRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Error().Err(err).Msg("[PostHandler][Update] Failed to bind json")
+		c.JSON(http.StatusBadRequest, presenter.FailureResponse(presenter.UpdatePostFailureMessage, err.Error()))
+		return
+	}
+	request.ID = convert.StringToInt64(c.Param("id"))
+
+	value, exists := c.Get("user_id")
+	if !exists || value.(int64) == 0 {
+		log.Error().Msg("[PostHandler][Update] Failed to get user id")
+		c.JSON(http.StatusBadRequest, presenter.FailureResponse(presenter.UpdatePostFailureMessage, presenter.UpdatePostUnauthorizedMessage))
+		return
+	}
+	request.AuthorID = value.(int64)
+
+	response, err := h.Service.Update(request)
+	if err != nil {
+		log.Error().Err(err).Msg("[PostHandler][Update] Failed to update post")
+		presenter.HandleError(c, err, presenter.UpdatePostStatusCodeMap, presenter.UpdatePostFailureMessage)
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.UpdatePostSuccessMessage, response))
+}
+
 func (h *PostHandler) GetByID(c *gin.Context) {
 	postID := convert.StringToInt64(c.Param("id"))
 	response, err := h.Service.GetByID(postID)

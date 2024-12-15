@@ -6,10 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type UpdateRequest struct {
+	ID       int64
+	Title    string `json:"title"`
+	Content  string `json:"content"`
+	AuthorID int64
+}
+
 type CreateRequest struct {
 	Title    string `json:"title" binding:"required"`
 	Content  string `json:"content" binding:"required"`
-	AuthorID int64  `json:"author_id"`
+	AuthorID int64
 }
 
 func (r *CreateRequest) ToPost() Post {

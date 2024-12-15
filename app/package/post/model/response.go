@@ -2,6 +2,11 @@ package model
 
 import "time"
 
+const (
+	ErrUnauthorizedAccess = "unauthorized access"
+	ErrInvalidRequest     = "invalid request"
+)
+
 type PostResponse struct {
 	ID        int64      `json:"id"`
 	Title     string     `json:"title"`

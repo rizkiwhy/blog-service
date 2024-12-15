@@ -13,6 +13,7 @@ type Repository interface {
 	Create(post model.Post) (*model.Post, error)
 	GetByID(id int64, preloadAuthor bool) (*model.Post, error)
 	SearchByFilter(filter database.MySQLFilter) (posts []model.Post, err error)
+	Update(post model.Post) (*model.Post, error)
 }
 
 type RepositoryImpl struct {
@@ -21,6 +22,16 @@ type RepositoryImpl struct {
 
 func NewRepository(db *gorm.DB) Repository {
 	return &RepositoryImpl{DB: db}
+}
+
+func (r *RepositoryImpl) Update(post model.Post) (*model.Post, error) {
+	result := r.DB.Save(&post)
+	if result.Error != nil {
+		log.Error().Err(result.Error).Interface("post", post).Msg("[PostRepository][Update] Failed to update post")
+		return nil, result.Error
+	}
+
+	return &post, nil
 }
 
 func (r *RepositoryImpl) Create(post model.Post) (*model.Post, error) {
