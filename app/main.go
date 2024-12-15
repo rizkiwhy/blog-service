@@ -9,6 +9,8 @@ import (
 	"rizkiwhy-blog-service/util/database"
 	"rizkiwhy-blog-service/util/logger"
 
+	pkgComment "rizkiwhy-blog-service/package/comment"
+	mComment "rizkiwhy-blog-service/package/comment/model"
 	pkgPost "rizkiwhy-blog-service/package/post"
 	mPost "rizkiwhy-blog-service/package/post/model"
 	pkgUser "rizkiwhy-blog-service/package/user"
@@ -28,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("[main] Failed to connect to MySQL")
 	}
-	db.AutoMigrate(&mUser.User{}, &mPost.Post{})
+	db.AutoMigrate(&mUser.User{}, &mPost.Post{}, &mComment.Comment{})
 
 	redisClient, err := database.RedisConnection()
 	if err != nil {
@@ -44,7 +46,9 @@ func main() {
 
 	postRepository := pkgPost.NewRepository(db)
 	postService := pkgPost.NewService(postRepository)
-	router.SetupPostRoutes(g, authMiddleware, postService)
+	commentRepository := pkgComment.NewRepository(db)
+	commentService := pkgComment.NewService(commentRepository)
+	router.SetupPostRoutes(g, authMiddleware, postService, commentService)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")),

@@ -35,3 +35,8 @@ type TokenResponse struct {
 type LoginResponse struct {
 	Token *string `json:"token,omitempty"`
 }
+
+type Author struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
