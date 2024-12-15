@@ -18,64 +18,101 @@ import (
 )
 
 type AuthMiddleware struct {
-	UserService     pkgUser.Service
-	CacheRepository pkgUser.CacheRepository
+	UserRepository      pkgUser.Repository
+	UserCacheRepository pkgUser.CacheRepository
 }
 
-func NewAuthMiddleware(userService pkgUser.Service, cacheRepository pkgUser.CacheRepository) *AuthMiddleware {
+func NewAuthMiddleware(userRepository pkgUser.Repository, userCacheRepository pkgUser.CacheRepository) *AuthMiddleware {
 	return &AuthMiddleware{
-		UserService:     userService,
-		CacheRepository: cacheRepository,
+		UserRepository:      userRepository,
+		UserCacheRepository: userCacheRepository,
 	}
 }
 
-func (am *AuthMiddleware) AuthJWT() gin.HandlerFunc {
+func (m *AuthMiddleware) AuthJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			log.Error().Msg("[AuthMiddleware][AuthJWT] Missing authorization header")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.FailureResponse(MissingAuthHeaderTitleMessage, MissingAuthHeaderErrorMessage))
+			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, MissingAuthHeaderErrorMessage)
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				log.Error().Msg("[AuthMiddleware][AuthJWT] Invalid signing method")
-				return nil, errors.New(ErrInvalidSigningMethodMessage)
-			}
-			return []byte(os.Getenv("JWT_SECRET")), nil
-		})
+
+		token, err := parseJWTToken(tokenString)
 		if err != nil {
-			log.Error().Err(err).Msg("[AuthMiddleware][AuthJWT] Failed to parse token")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.FailureResponse(ErrInvalidAuthHeaderTitleMessage, err.Error()))
+			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenMessage)
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
-			log.Error().Msg("[AuthMiddleware][AuthJWT] Invalid token")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.FailureResponse(ErrInvalidAuthHeaderTitleMessage, ErrInvalidTokenMessage))
+			log.Error().Msg("[AuthMiddleware][AuthJWT] Invalid token claims or token is invalid")
+			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenClaimsMessage)
 			return
 		}
 
-		valueJWTPayload, err := am.CacheRepository.GetJWTPayload(mUser.GetJWTPayloadRequest{JIT: uuid.MustParse(fmt.Sprintf("%v", claims["jit"]))})
+		payload, err := m.fetchJWTPayloadFromCache(claims["jit"])
 		if err != nil {
-			log.Error().Err(err).Msg("[AuthMiddleware][AuthJWT] Failed to get JWT payload from cache")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.FailureResponse(ErrInvalidAuthHeaderTitleMessage, err.Error()))
+			log.Error().Err(err).Msg("[AuthMiddleware][AuthJWT] Failed to fetch JWT payload from cache")
+			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenClaimsMessage)
 			return
 		}
 
-		err = valueJWTPayload.ValidateTokenClaims(claims)
-		if err != nil {
+		if err := payload.ValidateTokenClaims(claims); err != nil {
 			log.Error().Err(err).Msg("[AuthMiddleware][AuthJWT] Invalid token claims")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.FailureResponse(ErrInvalidAuthHeaderTitleMessage, err.Error()))
+			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenClaimsMessage)
 			return
 		}
 
-		c.Set("user_id", valueJWTPayload.UserID)
-		c.Set("email", valueJWTPayload.Email)
+		user, err := m.UserRepository.GetByEmail(payload.Email)
+		if err != nil {
+			log.Error().Err(err).Msg("[AuthMiddleware][AuthJWT] Failed to find user by email")
+			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenClaimsMessage)
+			return
+		}
+
+		if user.ValidateTokenClaimsSub(payload.UserID, claims["sub"].(int64)) {
+			log.Error().Msg("[AuthMiddleware][AuthJWT] Invalid token claims")
+			abortWithUnauthorized(c, mUser.ErrUnauthorizedAccess, ErrInvalidTokenClaimsMessage)
+			return
+		}
+
+		c.Set("user_id", payload.UserID)
+		c.Set("email", payload.Email)
 
 		c.Next()
 	}
+}
+
+func parseJWTToken(tokenString string) (*jwt.Token, error) {
+	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			log.Error().Msg("[AuthMiddleware][parseJWTToken] Invalid signing method")
+			return nil, errors.New(ErrInvalidSigningMethodMessage)
+		}
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+}
+
+func (m *AuthMiddleware) fetchJWTPayloadFromCache(jit interface{}) (*mUser.ValueJWTPayload, error) {
+	jitUUID, err := uuid.Parse(fmt.Sprintf("%v", jit))
+	if err != nil {
+		log.Error().Err(err).Msg("[AuthMiddleware][fetchJWTPayloadFromCache] Failed to parse JIT UUID")
+		return nil, errors.New("invalid JIT")
+	}
+
+	payload, err := m.UserCacheRepository.GetJWTPayload(mUser.GetJWTPayloadRequest{JIT: jitUUID})
+	if err != nil {
+		log.Error().Err(err).Msg("[AuthMiddleware][fetchJWTPayloadFromCache] Failed to retrieve JWT payload from cache")
+		return nil, err
+	}
+
+	return payload, nil
+}
+
+func abortWithUnauthorized(c *gin.Context, title, message string) {
+	log.Error().Msgf("[AuthMiddleware] Unauthorized: %s - %s", title, message)
+	c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.FailureResponse(title, message))
 }

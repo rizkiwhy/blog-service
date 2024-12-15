@@ -38,18 +38,10 @@ func (h *PostHandler) Create(c *gin.Context) {
 
 	response, err := h.Service.Create(request)
 	if err != nil {
-		h.handleError(c, err, presenter.CreatePostStatusCodeMap)
+		log.Error().Err(err).Msg("[PostHandler][Create] Failed to create post")
+		presenter.HandleError(c, err, presenter.CreatePostStatusCodeMap, presenter.CreatePostFailureMessage)
 		return
 	}
 
 	c.JSON(http.StatusCreated, presenter.SuccessResponse(presenter.CreatePostSuccessMessage, response))
-}
-
-func (h *PostHandler) handleError(c *gin.Context, err error, statusCodeMap map[string]int) {
-	httpStatusCode := http.StatusInternalServerError
-	if code, ok := statusCodeMap[err.Error()]; ok {
-		httpStatusCode = code
-	}
-
-	c.JSON(httpStatusCode, presenter.FailureResponse(presenter.CreatePostFailureMessage, err.Error()))
 }
