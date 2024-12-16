@@ -6,6 +6,7 @@ import (
 	pkgPost "rizkiwhy-blog-service/package/post"
 	"rizkiwhy-blog-service/package/post/model"
 	"rizkiwhy-blog-service/util/convert"
+	"rizkiwhy-blog-service/util/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -87,8 +88,8 @@ func (h *PostHandler) GetByID(c *gin.Context) {
 }
 
 func (h *PostHandler) Search(c *gin.Context) {
-	var request model.Filter
-	request.SetSearch(c.Query("search"))
+	var request database.Filter
+	request.SetSearch(map[string][]string{c.Query("search"): {"content"}})
 	request.SetPagination(convert.StringToInt64(c.DefaultQuery("page", "1")), convert.StringToInt64(c.DefaultQuery("limit", "10")))
 	request.SetSortAndOrder(c.DefaultQuery("sort", "created_at"), c.DefaultQuery("order", "desc"))
 

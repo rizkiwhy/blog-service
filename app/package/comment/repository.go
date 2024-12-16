@@ -2,6 +2,7 @@ package comment
 
 import (
 	"rizkiwhy-blog-service/package/comment/model"
+	"rizkiwhy-blog-service/util/database"
 
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
@@ -9,6 +10,7 @@ import (
 
 type Repository interface {
 	Create(post model.Comment) (*model.Comment, error)
+	SearchByFilter(filter database.MySQLFilter) (posts []model.Comment, err error)
 }
 
 type RepositoryImpl struct {
@@ -17,6 +19,15 @@ type RepositoryImpl struct {
 
 func NewRepository(db *gorm.DB) Repository {
 	return &RepositoryImpl{DB: db}
+}
+
+func (r *RepositoryImpl) SearchByFilter(filter database.MySQLFilter) (comments []model.Comment, err error) {
+	err = database.BuildMySQLFilter(r.DB, filter).Find(&comments).Error
+	if err != nil {
+		log.Error().Err(err).Interface("filter", filter).Msg("[CommentRepository][SearchByFilter] Failed to get comment by filter")
+	}
+
+	return
 }
 
 func (r *RepositoryImpl) Create(comment model.Comment) (*model.Comment, error) {

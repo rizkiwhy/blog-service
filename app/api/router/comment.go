@@ -10,9 +10,10 @@ import (
 
 func SetupCommentRoutes(r *gin.RouterGroup, authMiddleware *middleware.AuthMiddleware, service pkgComment.Service) {
 	commentHandler := handler.NewCommentHandler(service)
-	commentsRouter := r.Group("/comment")
+	commentsRouter := r.Group("/comments")
 	commentsRouter.Use(authMiddleware.AuthJWT())
 	{
 		commentsRouter.POST("/", commentHandler.Create)
+		commentsRouter.GET("/", commentHandler.Search)
 	}
 }
