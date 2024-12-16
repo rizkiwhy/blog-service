@@ -9,7 +9,7 @@ import (
 
 type MySQLFilter struct {
 	Where   gin.H
-	Like    gin.H
+	Like    *Like
 	Not     gin.H
 	Or      gin.H
 	Preload []string
@@ -19,6 +19,24 @@ type MySQLFilter struct {
 	Sort    string
 }
 
+type Like struct {
+	Columns []string
+	Value   string
+}
+
+func (f *MySQLFilter) SetPagination(page, limit int64) {
+	f.Limit = limit
+	f.Offset = (page - 1) * limit
+}
+
+func (f *MySQLFilter) SetLike(req map[string][]string) {
+	if len(req) > 0 {
+		for k, v := range req {
+			f.Like = &Like{Columns: v, Value: k}
+		}
+	}
+}
+
 func BuildMySQLFilter(dbMySQL *gorm.DB, filter MySQLFilter) *gorm.DB {
 	if len(filter.Where) > 0 {
 		for k, v := range filter.Where {
@@ -26,9 +44,9 @@ func BuildMySQLFilter(dbMySQL *gorm.DB, filter MySQLFilter) *gorm.DB {
 		}
 	}
 
-	if len(filter.Like) > 0 {
-		for k, v := range filter.Like {
-			dbMySQL = dbMySQL.Where(fmt.Sprintf("%s LIKE ?", k), fmt.Sprintf("%%%s%%", v))
+	if filter.Like != nil {
+		for _, column := range filter.Like.Columns {
+			dbMySQL = dbMySQL.Or(fmt.Sprintf("%s LIKE ?", column), fmt.Sprintf("%%%s%%", filter.Like.Value))
 		}
 	}
 
@@ -63,4 +81,42 @@ func BuildMySQLFilter(dbMySQL *gorm.DB, filter MySQLFilter) *gorm.DB {
 	}
 
 	return dbMySQL
+}
+
+type Filter struct {
+	Equal  gin.H
+	Search map[string][]string
+	Page   int64
+	Limit  int64
+	Sort   string
+	Order  string
+}
+
+func (f *Filter) SetSearch(request map[string][]string) {
+	if len(request) > 0 {
+		f.Search = request
+	}
+}
+
+func (f *Filter) SetPagination(Page, Limit int64) {
+	f.Page = Page
+	f.Limit = Limit
+}
+
+func (f *Filter) SetSortAndOrder(Sort, Order string) {
+	f.Sort = Sort
+	f.Order = Order
+}
+
+func (f *Filter) ToMySQLFilter() MySQLFilter {
+	mFilter := MySQLFilter{
+		Where:  f.Equal,
+		Limit:  f.Limit,
+		Offset: (f.Page - 1) * f.Limit,
+		Order:  f.Sort,
+		Sort:   f.Order,
+	}
+	mFilter.SetLike(f.Search)
+
+	return mFilter
 }

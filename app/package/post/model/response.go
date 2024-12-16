@@ -18,5 +18,5 @@ type PostResponse struct {
 	Content   string        `json:"content"`
 	Author    *mUser.Author `json:"author,omitempty"`
 	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt *time.Time    `json:"updated_at"`
+	UpdatedAt *time.Time    `json:"updated_at,omitempty"`
 }

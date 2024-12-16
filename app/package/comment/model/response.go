@@ -17,5 +17,5 @@ type CommentResponse struct {
 	Author    *mUser.Author `json:"author,omitempty"`
 	Content   string        `json:"content"`
 	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt *time.Time    `json:"updated_at"`
+	UpdatedAt *time.Time    `json:"updated_at,omitempty"`
 }

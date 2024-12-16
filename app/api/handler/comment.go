@@ -6,6 +6,7 @@ import (
 	pkgComment "rizkiwhy-blog-service/package/comment"
 	"rizkiwhy-blog-service/package/comment/model"
 	"rizkiwhy-blog-service/util/convert"
+	"rizkiwhy-blog-service/util/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -19,6 +20,22 @@ func NewCommentHandler(service pkgComment.Service) *CommentHandler {
 	return &CommentHandler{
 		Service: service,
 	}
+}
+
+func (h *CommentHandler) Search(c *gin.Context) {
+	var request database.Filter
+	request.SetPagination(convert.StringToInt64(c.DefaultQuery("page", "1")), convert.StringToInt64(c.DefaultQuery("limit", "10")))
+	request.SetSortAndOrder(c.DefaultQuery("sort", "created_at"), c.DefaultQuery("order", "desc"))
+	postID := convert.StringToInt64(c.Param("id"))
+	request.Equal = gin.H{"post_id": postID}
+	response, err := h.Service.SearchByFilter(request)
+	if err != nil {
+		log.Error().Err(err).Msg("[CommentHandler][GetAll] Failed to get all comment")
+		presenter.HandleError(c, err, presenter.GetCommentStatusCodeMap, presenter.GetCommentFailureMessage)
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.SuccessResponse(presenter.GetCommentSuccessMessage, response))
 }
 
 func (h *CommentHandler) Create(c *gin.Context) {

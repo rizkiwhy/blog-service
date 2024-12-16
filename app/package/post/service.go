@@ -3,6 +3,7 @@ package post
 import (
 	"errors"
 	"rizkiwhy-blog-service/package/post/model"
+	"rizkiwhy-blog-service/util/database"
 
 	"github.com/rs/zerolog/log"
 )
@@ -14,7 +15,7 @@ type ServiceImpl struct {
 type Service interface {
 	Create(request model.CreateRequest) (response model.PostResponse, err error)
 	GetByID(request int64) (response model.PostResponse, err error)
-	SearchByFilter(request model.Filter) (response []model.PostResponse, err error)
+	SearchByFilter(request database.Filter) (response []model.PostResponse, err error)
 	Update(request model.UpdateRequest) (response model.PostResponse, err error)
 	Delete(request model.DeleteRequest) (err error)
 }
@@ -89,7 +90,7 @@ func (s *ServiceImpl) GetByID(request int64) (response model.PostResponse, err e
 	return post.ToPostResponse(), nil
 }
 
-func (s *ServiceImpl) SearchByFilter(request model.Filter) (response []model.PostResponse, err error) {
+func (s *ServiceImpl) SearchByFilter(request database.Filter) (response []model.PostResponse, err error) {
 	filter := request.ToMySQLFilter()
 	filter.Preload = append(filter.Preload, "Author")
 	posts, err := s.Repository.SearchByFilter(filter)
